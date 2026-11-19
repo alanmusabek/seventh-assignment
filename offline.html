@@ -1,0 +1,89 @@
+<!doctype html>
+<!--
+  The offline page. It is a plain HTML file (no React, no network needed), saved in the
+  cache when the service worker installs. The service worker shows it when a page
+  cannot be loaded from the network or from the cache.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1d2b28" />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <title>You are offline — Launchpad</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: #f7f7f2;
+        color: #253b31;
+        font-family: "DM Sans", "Segoe UI", sans-serif;
+      }
+      .card {
+        width: 100%;
+        max-width: 440px;
+        padding: 32px 24px;
+        text-align: center;
+        background: #fffefa;
+        border: 1px solid #e2e6d9;
+        border-radius: 10px;
+      }
+      .icon { width: 72px; height: 72px; border-radius: 16px; }
+      h1 { font-family: Georgia, serif; font-weight: 400; font-size: 32px; margin: 16px 0 8px; }
+      p { color: #7b826f; line-height: 1.6; }
+      button, a {
+        display: block;
+        width: 100%;
+        min-height: 44px;
+        margin-top: 12px;
+        padding: 10px 16px;
+        border-radius: 6px;
+        font: inherit;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      button { border: 0; background: #385642; color: #fff; }
+      a { border: 1px solid #e2e6d9; color: inherit; }
+      #status { min-height: 1.6em; color: #a2533e; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <img class="icon" src="./icons/icon-192.png" alt="" />
+      <h1>You are offline</h1>
+      <p>
+        This page could not be loaded because there is no internet connection. Pages and data you
+        opened before are still saved on this device.
+      </p>
+      <p id="status" role="status"></p>
+      <button id="retry">Retry connection</button>
+      <a href="./">Open saved app</a>
+    </main>
+
+    <script>
+      const statusText = document.getElementById("status");
+
+      // Tries a real request (not just navigator.onLine). If it works, go back to the app.
+      async function retry() {
+        statusText.textContent = "Checking connection…";
+        try {
+          await fetch("./manifest.json?check=" + Date.now(), { cache: "no-store" });
+          window.location.href = "./";
+        } catch {
+          statusText.textContent = "Still offline. Please try again in a moment.";
+        }
+      }
+
+      document.getElementById("retry").addEventListener("click", retry);
+      // Go back automatically when the browser says the connection is back.
+      window.addEventListener("online", retry);
+    </script>
+  </body>
+</html>
